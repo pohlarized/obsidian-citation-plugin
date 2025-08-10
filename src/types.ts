@@ -34,7 +34,7 @@ export const TEMPLATE_VARIABLES = {
 };
 
 export class Library {
-  constructor(public entries: { [citekey: string]: Entry }) {}
+  constructor(public entries: { [citekey: string]: Entry }) { }
 
   get size(): number {
     return Object.keys(this.entries).length;
@@ -65,6 +65,11 @@ export class Library {
       URL: entry.URL,
       year: entry.year?.toString(),
       zoteroSelectURI: entry.zoteroSelectURI,
+      comment: entry.comment,
+      file: entry.file,
+      priority: entry.priority,
+      ranking: entry.ranking,
+      readstatus: entry.readstatus,
     };
 
     return { entry: entry.toJSON(), ...shortcuts };
@@ -103,7 +108,7 @@ export function loadEntries(
     parsed.errors.forEach((error) => {
       console.error(
         `Citation plugin: fatal error loading BibLaTeX entry` +
-          ` (line ${error.line}, column ${error.column}):`,
+        ` (line ${error.line}, column ${error.column}):`,
         error.message,
       );
     });
@@ -177,6 +182,15 @@ export abstract class Entry {
   public abstract eprint?: string;
   public abstract eprinttype?: string;
 
+  /**
+   * JabRef specific properties
+   */
+  public abstract comment?: string;
+  public abstract file?: string;
+  public abstract priority?: string;
+  public abstract ranking?: string;
+  public abstract readstatus?: string;
+
   protected _year?: string;
   public get year(): number {
     return this._year
@@ -240,6 +254,11 @@ export interface EntryDataCSL {
   title?: string;
   'title-short'?: string;
   URL?: string;
+  comment?: string;
+  file?: string;
+  priority?: string;
+  ranking?: string;
+  readstatus?: string;
 }
 
 export class EntryCSLAdapter extends Entry {
@@ -320,6 +339,26 @@ export class EntryCSLAdapter extends Entry {
   get URL() {
     return this.data.URL;
   }
+
+  get comment() {
+    return this.data.comment;
+  }
+
+  get file() {
+    return this.data.file;
+  }
+
+  get priority() {
+    return this.data.priority;
+  }
+
+  get ranking() {
+    return this.data.ranking;
+  }
+
+  get readstatus() {
+    return this.data.readstatus;
+  }
 }
 
 const BIBLATEX_PROPERTY_MAPPING: Record<string, string> = {
@@ -342,6 +381,11 @@ const BIBLATEX_PROPERTY_MAPPING: Record<string, string> = {
   year: '_year',
   publisher: 'publisher',
   note: '_note',
+  comment: 'comment',
+  file: '_file',
+  priority: 'priority',
+  ranking: 'ranking',
+  readstatus: 'readstatus',
 };
 
 // BibLaTeX parser returns arrays of property values (allowing for repeated
@@ -365,6 +409,11 @@ const BIBLATEX_PROPERTY_TAKE_FIRST: string[] = [
   'venue',
   '_year',
   'publisher',
+  'comment',
+  '_file',
+  'readstatus',
+  'priority',
+  'ranking',
 ];
 
 export class EntryBibLaTeXAdapter extends Entry {
@@ -385,6 +434,11 @@ export class EntryBibLaTeXAdapter extends Entry {
   URL?: string;
   _year?: string;
   _note?: string[];
+  comment?: string;
+  _file?: string;
+  priority?: string;
+  ranking?: string;
+  readstatus?: string;
 
   constructor(private data: EntryDataBibLaTeX) {
     super();
@@ -462,5 +516,10 @@ export class EntryBibLaTeXAdapter extends Entry {
       given: a.firstName,
       family: a.lastName,
     }));
+  }
+
+  get file() {
+    console.debug(`Accessing file property! Type: ${typeof this._file} Value: ${this._file}.`);
+    return this._file?.toString().split(':')[1];
   }
 }
