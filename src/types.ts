@@ -70,6 +70,7 @@ export class Library {
       priority: entry.priority,
       ranking: entry.ranking,
       readstatus: entry.readstatus,
+      groups: entry.groups,
     };
 
     return { entry: entry.toJSON(), ...shortcuts };
@@ -190,6 +191,7 @@ export abstract class Entry {
   public abstract priority?: string;
   public abstract ranking?: string;
   public abstract readstatus?: string;
+  public abstract groups?: string;
 
   protected _year?: string;
   public get year(): number {
@@ -259,6 +261,7 @@ export interface EntryDataCSL {
   priority?: string;
   ranking?: string;
   readstatus?: string;
+  groups?: string;
 }
 
 export class EntryCSLAdapter extends Entry {
@@ -359,6 +362,10 @@ export class EntryCSLAdapter extends Entry {
   get readstatus() {
     return this.data.readstatus;
   }
+
+  get groups() {
+    return this.data.groups;
+  }
 }
 
 const BIBLATEX_PROPERTY_MAPPING: Record<string, string> = {
@@ -386,6 +393,7 @@ const BIBLATEX_PROPERTY_MAPPING: Record<string, string> = {
   priority: 'priority',
   ranking: 'ranking',
   readstatus: 'readstatus',
+  groups: '_groups',
 };
 
 // BibLaTeX parser returns arrays of property values (allowing for repeated
@@ -414,6 +422,7 @@ const BIBLATEX_PROPERTY_TAKE_FIRST: string[] = [
   'readstatus',
   'priority',
   'ranking',
+  '_groups',
 ];
 
 export class EntryBibLaTeXAdapter extends Entry {
@@ -439,6 +448,7 @@ export class EntryBibLaTeXAdapter extends Entry {
   priority?: string;
   ranking?: string;
   readstatus?: string;
+  _groups?: string;
 
   constructor(private data: EntryDataBibLaTeX) {
     super();
@@ -521,5 +531,15 @@ export class EntryBibLaTeXAdapter extends Entry {
   get file() {
     console.debug(`Accessing file property! Type: ${typeof this._file} Value: ${this._file}.`);
     return this._file?.toString().split(':')[1];
+  }
+
+  /// Returns groups as a markdown list
+  get groups() {
+    let group_arr = this._groups?.toString().split(', ');
+    if (group_arr !== null) {
+      let s = group_arr.join('\n  - ');
+      return '\n  - ' + s;
+    }
+    return null
   }
 }
