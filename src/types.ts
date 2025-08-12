@@ -390,11 +390,17 @@ const BIBLATEX_PROPERTY_MAPPING: Record<string, string> = {
   note: '_note',
   comment: 'comment',
   file: '_file',
-  priority: 'priority',
-  ranking: 'ranking',
+  priority: '_priority',
+  ranking: '_ranking',
   readstatus: 'readstatus',
   groups: '_groups',
 };
+
+const JABREF_PRIORITY_MAP: Record<string, string> = {
+  prio1: 'high',
+  prio2: 'medium',
+  prio3: 'low',
+}
 
 // BibLaTeX parser returns arrays of property values (allowing for repeated
 // property entries). For the following fields, just blindly take the first.
@@ -420,8 +426,8 @@ const BIBLATEX_PROPERTY_TAKE_FIRST: string[] = [
   'comment',
   '_file',
   'readstatus',
-  'priority',
-  'ranking',
+  '_priority',
+  '_ranking',
   '_groups',
 ];
 
@@ -445,8 +451,8 @@ export class EntryBibLaTeXAdapter extends Entry {
   _note?: string[];
   comment?: string;
   _file?: string;
-  priority?: string;
-  ranking?: string;
+  _priority?: string;
+  _ranking?: string;
   readstatus?: string;
   _groups?: string;
 
@@ -526,6 +532,16 @@ export class EntryBibLaTeXAdapter extends Entry {
       given: a.firstName,
       family: a.lastName,
     }));
+  }
+
+  get priority() {
+    if (this._priority !== null) {
+      return JABREF_PRIORITY_MAP[this._priority]
+    }
+  }
+
+  get ranking() {
+    return this._ranking?.toString().slice(4)
   }
 
   get file() {
