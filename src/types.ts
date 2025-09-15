@@ -552,7 +552,7 @@ export class EntryBibLaTeXAdapter extends Entry {
   /// Returns groups as a markdown list
   get groups() {
     let group_arr = this._groups?.toString().split(', ');
-    if (group_arr !== null) {
+    if (group_arr !== null && group_arr !== undefined) {
       let s = group_arr.join('\n  - ');
       return '\n  - ' + s;
     }
